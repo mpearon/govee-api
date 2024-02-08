@@ -37,7 +37,7 @@ Function Get-GoveeDeviceState{
 		[Parameter( ValueFromPipeline = $true )]$goveeDevice
 	)
 	Begin{
-		$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
+		$baseObject = Set-GoveeBaseObject -endpoint '/device/state'
 		$resultHash = @{}
 	}
 	Process{
@@ -70,7 +70,7 @@ Function Set-GoveeDevicePower{
 		[Parameter( ParameterSetName = 'powerToggle')][switch]$toggle
 	)
 	Begin{
-		$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
+		$baseObject = Set-GoveeBaseObject -endpoint '/device/control'
 	}
 	Process{
 		$goveeDevice | ForEach-Object{

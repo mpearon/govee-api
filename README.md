@@ -6,6 +6,7 @@ High-level, I intend to further automate the Govee ecosystem.  Initially, this w
 
 ## Instructions
 Right now, this is a simple PowerShell module, so you just need to import it via `Import-Module`.
+- On first run of any functions, you will be prompted to enter your API key.  This will be encrypted and stored in an environment variable in your user scope (`Govee-API-Key`).  It will then be decrypted as required to assemble the headers.
 
 ## To-do
 - [X] Poll devices

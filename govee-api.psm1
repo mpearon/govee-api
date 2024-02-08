@@ -1,13 +1,33 @@
-$goveeBaseObject = @{
-	uri     = 'https://openapi.api.govee.com/router/api/v1'
-	headers = @{
-		'Govee-API-Key' = ([System.Environment]::GetEnvironmentVariable('Govee-API-Key'))
-		'Content-Type'  = 'application/json'
+Function Set-GoveeBaseObject{
+	param(
+		$endpoint
+	)
+	Filter Decrypt-ApiKey{
+		$secureString = $_ | ConvertTo-SecureString
+		$ptrString = [System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($secureString)
+		return( [System.Runtime.InteropServices.Marshal]::PtrToStringUni($ptrString) )
+	}
+	if( $null -eq [System.Environment]::GetEnvironmentVariable('Govee-API-Key') ){
+		$apiKey = Read-Host 'Govee API Key'
+		$encryptedKey = ConvertTo-SecureString -String $apiKey -AsPlainText | ConvertFrom-SecureString
+		[System.Environment]::SetEnvironmentVariable('Govee-API-Key', $encryptedKey, 'User')
+		Write-Host -ForegroundColor Red 'User variables updated - please restart shell'
+		break
+	}
+	else{
+		$goveeBaseObject = @{
+			uri     = ('https://openapi.api.govee.com/router/api/v1{0}' -f $endpoint)
+			headers = @{
+				'Govee-API-Key' = ( ([System.Environment]::GetEnvironmentVariable('Govee-API-Key') | Decrypt-ApiKey ) )
+				'Content-Type'  = 'application/json'
+			}
+		}
+		return $goveeBaseObject
 	}
 }
 Function Get-GoveeDevice{
-	$uri = ('{0}/user/devices' -f $goveeBaseObject.uri)
-	$output = Invoke-RestMethod $uri -Headers $goveeBaseObject.headers
+	$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
+	$output = Invoke-RestMethod $baseObject.uri -Headers $baseObject.headers
 	if($output.code -eq 200){
 		return $output.data
 	}
@@ -17,7 +37,7 @@ Function Get-GoveeDeviceState{
 		[Parameter( ValueFromPipeline = $true )]$goveeDevice
 	)
 	Begin{
-		$uri = ('{0}/device/state' -f $goveeBaseObject.uri)
+		$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
 		$resultHash = @{}
 	}
 	Process{
@@ -31,7 +51,7 @@ Function Get-GoveeDeviceState{
 			}
 		}
 		$stateHash = @{}
-		$response = Invoke-RestMethod -Uri $uri -Headers $goveeBaseObject.headers -Body ($body | ConvertTo-Json) -Method Post
+		$response = Invoke-RestMethod -Uri $baseObject.uri -Headers $baseObject.headers -Body ($body | ConvertTo-Json) -Method Post
 		$response.payload.capabilities.GetEnumerator() | ForEach-Object{
 			$stateHash.($_.instance) = $_.state.value
 		}
@@ -50,8 +70,7 @@ Function Set-GoveeDevicePower{
 		[Parameter( ParameterSetName = 'powerToggle')][switch]$toggle
 	)
 	Begin{
-		$uri = ('{0}/device/control' -f $goveeBaseObject.uri)
-		
+		$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
 	}
 	Process{
 		$goveeDevice | ForEach-Object{
@@ -79,6 +98,6 @@ Function Set-GoveeDevicePower{
 				}
 			}
 		}
-		Invoke-RestMethod -Uri $uri -Headers $goveeBaseObject.headers -Body ($body | ConvertTo-Json) -Method Post
+		Invoke-RestMethod -Uri $baseObject.uri -Headers $baseObject.headers -Body ($body | ConvertTo-Json) -Method Post
 	}
 }

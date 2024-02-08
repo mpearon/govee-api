@@ -4,6 +4,9 @@
 ## Goal
 High-level, I intend to further automate the Govee ecosystem.  Initially, this will just be an exploratory practice.  As I progress through the project, I might formalize my approach.
 
+## Instructions
+Right now, this is a simple PowerShell module, so you just need to import it via `Import-Module`.
+
 ## To-do
 - [X] Poll devices
 	- via `Get-GoveeDevice`

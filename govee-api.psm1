@@ -36,7 +36,7 @@ Function Get-GoveeDevice{
 	if($output.code -eq 200){
 		switch($PSCmdlet.ParameterSetName){
 			'byType'	{ $filteredResults = $output.data | Where-Object{ $_.type -like ('devices.types.{0}' -f $type) } }
-			'byName'	{ $filteredResults = $output.data | Where-Object{ $_.deviceName -eq $name }}
+			'byName'	{ $filteredResults = $output.data | Where-Object{ $_.deviceName -match $name }}
 		}
 		return $filteredResults
 	}

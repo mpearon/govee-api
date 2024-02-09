@@ -26,11 +26,18 @@ Function Set-GoveeBaseObject{
 	}
 }
 Function Get-GoveeDevice{
+	param(
+		[ValidateSet('light','air_purifier','thermometer','socket','sensor','heater','humidifier','dehumidifier','ice_maker','aroma_diffuser','box', 'all')]$type = 'all'
+	)
 	$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
 	$output = Invoke-RestMethod $baseObject.uri -Headers $baseObject.headers
 	if($output.code -eq 200){
-		return $output.data
+		$filteredResults = $output.data
 	}
+	if($type -ne 'all'){
+		$filteredResults = $output.data | Where-Object{ $_.type -eq ('devices.types.{0}' -f $type) }
+	}
+	return $filteredResults
 }
 Function Get-GoveeDeviceState{
 	param(

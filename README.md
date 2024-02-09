@@ -10,7 +10,7 @@ Right now, this is a simple PowerShell module, so you just need to import it via
 
 ### Examples
 - Get device list: `Get-GoveeDevice`
-- Turn on device(s) from list: `Get-GoveeDevice | Out-GridView -PassThru | Set-GoveeDevicePower -powerOff`
+- Turn on device(s) from list: `Get-GoveeDevice | Out-GridView -PassThru | Set-GoveeDevicePower -powerOn`
 - Turn off device by name: `Get-GoveeDevice -name 'Television Lights' | Set-GoveeDevicePower -powerOff`
 - Toggle device power by type: `Get-GoveeDevice -type light | Set-GoveeDevicePower -toggle`
 

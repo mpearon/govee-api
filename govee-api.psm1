@@ -26,18 +26,24 @@ Function Set-GoveeBaseObject{
 	}
 }
 Function Get-GoveeDevice{
+	[CmdletBinding( DefaultParameterSetName = 'byType' )]
 	param(
-		[ValidateSet('light','air_purifier','thermometer','socket','sensor','heater','humidifier','dehumidifier','ice_maker','aroma_diffuser','box', 'all')]$type = 'all'
+		[Parameter( ParameterSetName = 'byType' )][ValidateSet('light','air_purifier','thermometer','socket','sensor','heater','humidifier','dehumidifier','ice_maker','aroma_diffuser','box')]$type = '*',
+		[Parameter( ParameterSetName = 'byName' )]$name
 	)
 	$baseObject = Set-GoveeBaseObject -endpoint '/user/devices'
-	$output = Invoke-RestMethod $baseObject.uri -Headers $baseObject.headers
+	$output = Invoke-RestMethod $baseObject.uri -Headers $baseObject.headers -ErrorVariable 'irmError'
 	if($output.code -eq 200){
-		$filteredResults = $output.data
+		switch($PSCmdlet.ParameterSetName){
+			'byType'	{ $filteredResults = $output.data | Where-Object{ $_.type -like ('devices.types.{0}' -f $type) } }
+			'byName'	{ $filteredResults = $output.data | Where-Object{ $_.deviceName -eq $name }}
+		}
+		return $filteredResults
 	}
-	if($type -ne 'all'){
-		$filteredResults = $output.data | Where-Object{ $_.type -eq ('devices.types.{0}' -f $type) }
+	else{
+		Write-Error -Message ('RESTful response was not OK: {0}' -f $irmError)
+		break
 	}
-	return $filteredResults
 }
 Function Get-GoveeDeviceState{
 	param(
